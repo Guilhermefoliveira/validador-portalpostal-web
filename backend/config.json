@@ -1,0 +1,39 @@
+{
+  "COLUNAS_OBRIGATORIAS": [
+    "NOME",
+    "NOME_COMPLETO",
+    "CEP",
+    "ENDERECO",
+    "NUMERO",
+    "BAIRRO",
+    "CIDADE",
+    "UF",
+    "CHAVE_NFE",
+    "CONTEUDO",
+    "CHAVE_NOTA_FISCAL"
+  ],
+  "API_TIMEOUT": 15,
+  "MAX_CONCURRENT_REQUESTS": 2,
+  "API_PROVIDERS": [
+    {
+      "name": "ViaCEP",
+      "url": "https://viacep.com.br/ws/{}/json/",
+      "parser_name": "_parse_viacep"
+    },
+    {
+      "name": "BrasilAPI",
+      "url": "https://brasilapi.com.br/api/cep/v1/{}",
+      "parser_name": "_parse_brasilapi"
+    },
+    {
+      "name": "OpenCEP",
+      "url": "https://opencep.com/v1/{}",
+      "parser_name": "_parse_opencep"
+    },
+    {
+      "name": "Postmon",
+      "url": "https://api.postmon.com.br/v1/cep/{}",
+      "parser_name": "_parse_postmon"
+    }
+  ]
+}

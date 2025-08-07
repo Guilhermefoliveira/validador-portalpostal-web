@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de CSV - PortalPostal</title>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap5.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="/static/img/logo.png" alt="Logo Portal Postal" class="logo-img">
+            <h1>Validador e Corretor de CSV</h1>
+            <p>Carregue um arquivo .CSV para validar, corrigir e padronizar seus dados.</p>
+            
+            <div class="header-buttons">
+                <a href="https://drive.google.com/file/d/1pcxP_1LJm6-6X3IexV7XA3Gn-uHKgph_/view?usp=sharing" target="_blank" class="manual-link">
+                    <button id="manual-use-btn"><i class="fa-solid fa-file" style="color: #fff"></i>Manual de Uso</button>
+                </a>
+                <button id="show-correios-fix-btn" class="btn"><i class="fa-solid fa-truck" style="color: #fff"></i>CSV Correio Atende</button>
+            </div>
+        </header>
+
+        <section id="correios-fix-section" class="options-section hidden">
+            <h3 style="color: var(--cor-texto-principal);">Corretor de Arquivos de Importação Correios Atende</h3>
+            <p>Esta ferramenta corrige arquivos de postagem exportados do sistema dos Correios Atende que apresentam quebras de linha incorretas.</p>
+            <a href="https://drive.google.com/file/d/1a-0Bzww6tLt0sc28L3SDYTrdvHdkEmI0/view?usp=sharing" style="margin-bottom: 10px;" target="_blank" class="help-icon" title="Clique no icone para ver um erro exemplo que o app corrige">?</a>
+            <div class="upload-section">
+                <input type="file" id="correios-csv-input" accept=".csv" hidden>
+                <button id="browse-correios-btn" type="button" class="btn btn-ca">Procurar Arquivo...</button>
+                <span id="correios-file-name">Nenhum arquivo selecionado</span>
+            </div>
+            <div class="action-section" style="margin-top: 15px;">
+                <button id="fix-and-download-btn" type="button" class="btn btn-primary" disabled>Corrigir e Baixar</button>
+                <button id="back-to-validator-btn" type="button" class="btn btn-secondary">Voltar ao Validador</button>
+                <div id="correios-loader" class="hidden"><div class="spinner"></div>Corrigindo...</div>
+            </div>
+        </section>
+
+        <div id="main-validator-section">
+            <section id="step-1" class="step-container active">
+                <div class="step-content">
+                    <section class="upload-section">
+                        <input type="file" id="csv-file-input" accept=".csv" hidden>
+                        <button id="browse-btn" type="button">Procurar Arquivo...</button>
+                        <span id="file-name-display">Nenhum arquivo selecionado</span>
+                    </section>
+                </div>
+            </section>
+
+            <section id="step-2" class="step-container">
+                <div class="step-content">
+                    <section id="mapping-section"></section>
+                    <section class="options-section">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="api-checkbox" checked>
+                            <label class="form-check-label" for="api-checkbox">Validar e corrigir endereços via API (processo mais lento)</label>
+                            <span class="help-icon" title="Ativar ou desativar a validação e correção de endereços via APIs externas. Desativar pode acelerar o processo, mas não corrigirá endereços.">?</span>
+                        </div>
+                    </section>
+                    <section class="action-section">
+                        <button id="validate-btn" type="button" disabled>Validar Arquivo</button>
+                        <button id="clear-btn-step2" type="button" class="btn-secondary">Limpar e Voltar</button>
+                        <div id="loader" class="hidden"><div class="spinner"></div>Processando...</div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="step-3" class="step-container">
+                <div id="results-sticky-header" class="sticky">
+                    <section class="legend-section">
+                        <div class="legend-item"><span class="legend-color cell-error"></span><span class="legend-text">Campo Obrigatório</span></div>
+                        <div class="legend-item"><span class="legend-color cell-has-correction"></span><span class="legend-text">Campo a Corrigir</span></div>
+                        <div class="legend-item"><span class="legend-color diff-adicionado"></span><span class="legend-text">Valor Corrigido</span></div>
+                    </section>
+                    <section class="action-section">
+                        <button id="download-csv-btn" type="button" class="hidden">Baixar CSV Corrigido</button>
+                        <button id="download-report-btn" type="button" class="hidden">Baixar Relatório</button>
+                        <button id="clear-btn-step3" type="button" class="btn-secondary">Limpar e Voltar</button>
+                    </section>
+                    <div class="tab-container">
+                        <button class="tab-btn active" data-tab="visualizador">Visualizador de Dados</button>
+                        <button class="tab-btn" data-tab="erros">Erros e Avisos <span id="erros-count" class="count-badge hidden">0</span></button>
+                        <button class="tab-btn" data-tab="correcoes">Correções Sugeridas <span id="correcoes-count" class="count-badge hidden">0</span></button>
+                    </div>
+                </div>
+                <section class="results-section">
+                    <div id="visualizador" class="tab-content active">
+                        <div class="table-container">
+                            <table id="visualizador-table" class="table table-striped table-hover" style="width:100%">
+                                <thead id="visualizador-head"></thead>
+                                <tbody id="visualizador-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="erros" class="tab-content">
+                        <div class="table-container">
+                            <table id="erros-table" class="table table-striped table-hover" style="width:100%">
+                                <thead><tr><th>Linha</th><th>Coluna</th><th>Mensagem</th></tr></thead>
+                                <tbody id="erros-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="correcoes" class="tab-content">
+                        <div class="table-container">
+                            <table id="correcoes-table" class="table table-striped table-hover" style="width:100%">
+                                <thead><tr><th>Linha</th><th>Coluna</th><th>Original</th><th>Corrigido</th><th>Fonte</th></tr></thead>
+                                <tbody id="correcoes-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </div> 
+    </div>
+
+    <div id="terms-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div id="terms-text"></div>
+            <div class="modal-footer">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="terms-checkbox">
+                    <label class="form-check-label" for="terms-checkbox">Eu li e concordo com os Termos e Condições de Uso.</label>
+                </div>
+                <button id="accept-terms-btn" type="button" disabled>Aceitar e Continuar</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer id="footer">
+        <p>&copy; 2025 Portal Postal. Todos os direitos reservados.</p>
+        <p>Desenvolvido por Guilherme Oliveira<a href="https://github.com/Guilhermefoliveira" target="_blank" class="github-link"><i class="fa-brands fa-github" style="color: #fff"></i></a></p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    <script src="/static/js/jquery-3.7.1.min.js"></script>
+    <script src="/static/js/dataTables.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script> 
+    <script src="/static/js/scripts.js"></script>
+    <script src="https://kit.fontawesome.com/9e0fd41c68.js" crossorigin="anonymous"></script>
+</body>
+</html>

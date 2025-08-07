@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Validação</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 8pt;
+                color: #777;
+            }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 9pt;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #005A9C;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-height: 40px;
+            margin-bottom: 10px;
+        }
+        h1, h2 {
+            color: #1a253c;
+            margin: 0;
+            padding: 0;
+        }
+        h1 { font-size: 18pt; }
+        h2 { font-size: 14pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 25px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            font-size: 8pt;
+            color: #777;
+            position: fixed;
+            bottom: -30px;
+        }
+        .no-results {
+            margin-top: 10px;
+            font-style: italic;
+            color: #555;
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 5px solid #005A9C;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .summary-box h3 {
+            margin-top: 0;
+            color: #1a253c;
+        }
+        .summary-box p {
+            margin: 5px 0 0 0;
+            font-size: 10pt;
+        }
+        .diff-removido {
+            background-color: #ffebe9;
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+        .diff-adicionado {
+            background-color: #e6ffec;
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/backend/static/img/logo.png" alt="Logo">
+        <h1>Relatório de Validação de Arquivo</h1>
+    </div>
+
+    <p><strong>Arquivo Original:</strong> {{ nome_arquivo_original }}</p>
+    <p><strong>Data do Relatório:</strong> {{ data_relatorio }}</p>
+
+    <div class="summary-box">
+        <h3>Resumo da Validação</h3>
+        <p><strong>{{ resultados.erros|length }}</strong> erros encontrados que impedem o processamento.</p>
+        <p><strong>{{ resultados.avisos|length }}</strong> avisos emitidos para verificação manual.</p>
+        <p><strong>{{ resultados.correcoes|length }}</strong> correções automáticas aplicadas.</p>
+    </div>
+
+
+    {% if resultados.avisos or resultados.erros %}
+        <h2>Erros e Avisos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:10%;">Linha</th>
+                    <th style="width:15%;">Coluna</th>
+                    <th>Mensagem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in resultados.avisos %}
+                    {% set parts = item.split(':', 1) %}
+                    {% if parts|length > 1 and parts[0].replace('Linha ', '') is number %}
+                        <tr>
+                            <td>{{ parts[0].replace('Linha ', '') }}</td>
+                            <td>Aviso</td>
+                            <td>{{ parts[1] }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td>Global</td>
+                            <td>Aviso</td>
+                            <td>{{ item }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                {% for erro in resultados.erros %}
+                    <tr>
+                        <td>{{ erro.linha }}</td>
+                        <td>{{ erro.coluna }}</td>
+                        <td>{{ erro.mensagem }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if resultados.correcoes %}
+        <h2>Correções Sugeridas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:8%;">Linha</th>
+                    <th style="width:12%;">Coluna</th>
+                    <th>Antes e Depois</th>
+                    <th style="width:8%;">Fonte</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for correcao in resultados.correcoes %}
+                <tr>
+                    <td>{{ correcao.linha }}</td>
+                    <td>{{ correcao.coluna }}</td>
+                    <td>
+                        <span class="diff-removido">{{ correcao.original if correcao.original else 'vazio' }}</span>
+                        &rarr;
+                        <span class="diff-adicionado">{{ correcao.corrigido if correcao.corrigido else 'vazio' }}</span>
+                    </td>
+                    <td>{{ correcao.fonte }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h2>Correções Sugeridas</h2>
+        <p class="no-results">Nenhuma correção foi aplicada automaticamente.</p>
+    {% endif %}
+    
+    <div class="footer">
+        Relatório gerado pelo Validador Portal Postal
+    </div>
+</body>
+</html>
