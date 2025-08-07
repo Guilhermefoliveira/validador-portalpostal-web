@@ -2,7 +2,8 @@
 
 ## 📜 Descrição
 
-Este é um aplicativo web desenvolvido para validar, corrigir e padronizar arquivos de planilha (`.csv`) antes de serem enviados para a plataforma Portal Postal. A ferramenta analisa os dados, corrige formatos inválidos de campos como CEP e CPF/CNPJ, valida endereços e ajuda a prevenir erros de importação.
+Este é um aplicativo web desenvolvido para validar, corrigir e padronizar arquivos de planilha (`.csv`) antes de serem enviados para a plataforma Portal Postal. 
+A ferramenta analisa os dados, corrige formatos inválidos de campos como CEP e CPF/CNPJ, valida endereços e ajuda a prevenir erros de importação.
 
 O projeto foi construído com um backend em Python (usando Flask) e um frontend interativo com HTML, CSS e JavaScript.
 
